@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* CSS for screen */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #9ACD32; /* Nature green background */
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+#sentence {
+    font-size: 60px; /* Decreased font size for better fit */
+    color: #07629b; /* Light blue font color */
+}
+
+#userInput, button, #checkMark, #crossMark, #skipButton, #restartButton {
+    font-size: 60px; /* Font size adjusted */
+    height: 100px; /* Adjusted height */
+    margin: 10px; /* Added margin for spacing */
+}
+
+#userInput {
+    padding-right: 120px; /* Adjusted padding */
+    width: auto; /* Adjusted width */
+}
+
+#checkMark, #crossMark {
+    display: none;
+}
+
+#checkButton, #skipButton, #restartButton {
+    font-size: 40px; /* Adjusted font size */
+    width: auto; /* Adjusted width to fit text */
+    height: auto; /* Adjusted height to fit text */
+    padding: 20px 30px; /* Added padding */
+    margin: 10px; /* Added margin for spacing */
+    background-color: #0c649b; /* Light blue button color */
+    border: none;
+    border-radius: 10px; /* Rounded corners */
+    cursor: pointer;
+}
+
+#checkButton:hover, #skipButton:hover, #restartButton:hover {
+    background-color: #f6cc14; /* Darker blue on hover */
+}
+
+#score {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 30px;
+    color: white;
+}
+
+#resultSheet {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 800px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 9999; /* Ensure the result sheet is on top */
+    margin-top: 20px;
+}
+
+#resultSheet h2 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+#resultList {
+    list-style: none;
+    padding: 0;
+}
+
+#resultList li {
+    margin-bottom: 10px;
+}
+
+.correct {
+    color: green;
+}
+
+.incorrect {
+    color: red;
+}
+
+/* Style for CONGRATULATIONS message */
+#resultSheet h2.congrats {
+    color: green;
+}
+
+/* CSS adjustments for printing */
+@media print {
+    body * {
+        display: none;
+    }
+
+    #resultSheet {
+        display: block;
+    }
+
+    #resultSheet * {
+        display: block !important;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <p id="sentence"></p>
+    <input type="text" id="userInput" class="" placeholder="Type or speak the sentence here">
+    <span id="checkMark">✔</span>
+    <span id="crossMark">✘</span>
+    <button id="checkButton" onclick="checkSentence()">Check</button>
+    <button id="skipButton" onclick="skipSentence()">Skip</button>
+    <button id="restartButton" onclick="restartGame()">Restart</button>
+    <div id="score">Score: <span id="scoreValue">0</span>/10</div>
+    <div id="resultSheet">
+        <h2>Result Sheet</h2>
+        <ul id="resultList"></ul>
+    </div>
+</div>
+
+<script>
+// Initialize variables
+let score = 0;
+let results = [];
+
+// Array of random sentences
+const sentences = [
+    "I go up.",
+    "I go down.",
+    "I go up and down.",
+    "We go up.",
+    "We go down.",
+    "We go up and down.",
+    "Here is my cat.",
+    "Here is my bag.",
+    "Here is my Dad.",
+    "Here is my Mum.",
+    "Here is my mug.",
+    "Here is my bed.",
+    "The cat is here.",
+    "The car is here.",
+    "Here is a cat.",
+    "Here is a car.",
+    "Here is Mum.",
+    "Here is Dad.",
+    "Mum is here.",
+    "Dad is here.",
+    "I am in the car.",
+    "I am in the bus.",
+    "Mum is in the car.",
+    "Dad is in the bus.",
+    "I am in the pool.",
+    "A fish.",
+    "The dog.",
+    "Look at the fish.",
+    "Look at the dog.",
+    "This is my house.",
+    "This is my bike."
+];
+
+// Function to display a random sentence
+function displayRandomSentence() {
+    const randomIndex = Math.floor(Math.random() * sentences.length);
+    const sentence = sentences[randomIndex];
+    document.getElementById("sentence").textContent = sentence;
+
+    // Set width of input field to fit the longest sentence
+    const userInput = document.getElementById("userInput");
+    userInput.style.width = (sentence.length * 40) + "px"; // Adjust as needed for better fit
+}
+
+// Function to check if the user has said the sentence correctly
+function checkSentence() {
+    const userInput = document.getElementById("userInput").value;
+    const displayedSentence = document.getElementById("sentence").textContent;
+    const inputField = document.getElementById("userInput");
+    const checkMark = document.getElementById("checkMark");
+    const crossMark = document.getElementById("crossMark");
+    const scoreValue = document.getElementById("scoreValue");
+
+    if (userInput.toLowerCase() === displayedSentence.toLowerCase()) {
+        inputField.classList.remove("incorrect");
+        inputField.classList.add("correct");
+        checkMark.style.display = "inline";
+        crossMark.style.display = "none";
+        score += 1;
+        results.push({sentence: displayedSentence, result: "Correct"});
+    } else {
+        inputField.classList.remove("correct");
+        inputField.classList.add("incorrect");
+        checkMark.style.display = "none";
+        crossMark.style.display = "inline";
+        results.push({sentence: displayedSentence, result: "Incorrect"});
+    }
+    
+    // Update score
+    scoreValue.textContent = score;
+
+    // Check if 10 sentences are displayed
+    if (results.length === 10) {
+        showResultSheet();
+    } else {
+        // Display another random sentence
+        setTimeout(function() {
+            displayRandomSentence();
+            inputField.value = ""; // Clear the input field
+            inputField.classList.remove("correct", "incorrect"); // Reset the input field style
+            checkMark.style.display = "none"; // Hide the check mark
+            crossMark.style.display = "none"; // Hide the cross mark
+        }, 1000); // Adjust the delay as needed
+    }
+}
+
+// Function to skip the displayed sentence
+function skipSentence() {
+    displayRandomSentence();
+    document.getElementById("userInput").value = ""; // Clear the input field
+}
+
+// Function to restart the game
+function restartGame() {
+    score = 0;
+    results = [];
+    document.getElementById("scoreValue").textContent = score;
+    document.getElementById("resultSheet").style.display = "none";
+    displayRandomSentence();
+}
+
+// Function to show result sheet
+function showResultSheet() {
+    const resultSheet = document.getElementById("resultSheet");
+    const resultList = document.getElementById("resultList");
+
+    // Clear previous results
+    resultList.innerHTML = "";
+
+    // Display results
+    results.forEach(result => {
+        const listItem = document.createElement("li");
+        listItem.textContent = result.sentence + " - " + result.result;
+        if (result.result === "Correct") {
+            listItem.classList.add("correct");
+        } else {
+            listItem.classList.add("incorrect");
+        }
+        resultList.appendChild(listItem);
+    });
+
+    // Show result sheet
+    resultSheet.style.display = "block";
+
+    // Check if the score is 10/10
+    if (score === 10) {
+        // Display congratulations message
+        const congratsMessage = document.createElement("h2");
+        congratsMessage.textContent = "CONGRATULATIONS!";
+        congratsMessage.classList.add("congrats"); // Add class to style
+        resultSheet.insertBefore(congratsMessage, resultSheet.firstChild);
+    }
+}
+
+// Add event listener for speech recognition
+document.getElementById('userInput').addEventListener('click', startSpeechRecognition);
+
+// Function to start speech recognition
+function startSpeechRecognition() {
+    const recognition = new webkitSpeechRecognition() || new SpeechRecognition(); // Support for different browsers
+    recognition.lang = 'en-US'; // Set language
+    recognition.start(); // Start speech recognition
+    
+    recognition.onresult = function(event) {
+        const result = event.results[0][0].transcript; // Get the recognized text
+        document.getElementById('userInput').value = result; // Set the input field value
+    }
+}
+
+// Display a random sentence when the page loads
+displayRandomSentence();
+</script>
+
+</body>
+</html>
